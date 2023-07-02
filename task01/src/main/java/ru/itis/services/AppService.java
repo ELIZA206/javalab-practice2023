@@ -5,7 +5,10 @@ import ru.itis.models.User;
 import ru.itis.repositories.EventsRepository;
 import ru.itis.repositories.UsersRepository;
 
+import java.io.FileNotFoundException;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 public class AppService {
@@ -36,7 +39,7 @@ public class AppService {
 
 
     }
-    public void addUserToEvent(String emailUser, String nameEvent) {
+    public void addUserToEvent(String emailUser, String nameEvent) throws FileNotFoundException {
         User user = usersRepository.findByEmail(emailUser);
         if (user == null) {
             throw new IllegalArgumentException("Пользователь не найден");
@@ -48,5 +51,10 @@ public class AppService {
         }
 
         eventsRepository.saveUserToEvent(user,event);
+    }
+    public List<Event> getAllEventsByUser(String email) throws FileNotFoundException {
+        User user = usersRepository.findByEmail(email);
+        System.out.println(Arrays.toString(eventsRepository.findAllByMembersContains(user).toArray()));
+        return eventsRepository.findAllByMembersContains(user);
     }
 }
