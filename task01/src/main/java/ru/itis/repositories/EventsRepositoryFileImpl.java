@@ -3,10 +3,10 @@ package ru.itis.repositories;
 import ru.itis.models.Event;
 import ru.itis.models.User;
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EventsRepositoryFileImpl implements EventsRepository {
     private final String eventFileName;
@@ -29,14 +29,72 @@ public class EventsRepositoryFileImpl implements EventsRepository {
     }
     @Override
     public Event findByName(String nameEvent) {
-        if (nameEvent.equals("Практика по Golang")) {
-            return Event.builder()
-                    .id("c5bcc553-a8f3-4619-8e34-c19abf75aab5")
-                    .name("Практика по Golang")
-                    .date(LocalDate.parse("2023-07-01"))
-                    .build();
+        List<String> lines = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(eventFileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+        for (String line : lines) {
+            String[] inf = line.split("\\|");
+            if (nameEvent.equals(inf[1])) {
+                return Event.builder()
+                        .id(inf[0])
+                        .name(inf[1])
+                        .date(LocalDate.parse(inf[2]))
+                        .build();
+            }
+
         }
         return null;
+    }
+
+    @Override
+    public List<Event> findAllByMembersContains(User user) {
+        List<Event> event = new ArrayList<>();
+        List<String> lines = new ArrayList<>();
+        List<String> ID = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(eventsAndUsersFileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+        for (String line : lines) {
+            String[] inf = line.split("\\|");
+            if (user.getId().equals(inf[0])) {
+                ID.add(inf[1]);
+            }
+        }
+        List<String> lines0 = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(eventFileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines0.add(line);
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+        for (String line : lines0) {
+            String[] inf = line.split("\\|");
+            for (String id : ID) {
+                if (id.equals(inf[0])) {
+                    event.add(Event.builder()
+                            .id(inf[0])
+                            .name(inf[1])
+                            .date(LocalDate.parse(inf[2]))
+                            .build());
+                }
+            }
+        }
+        return event;
     }
 
     @Override
