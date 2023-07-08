@@ -4,16 +4,14 @@ import org.itis.models.Course;
 import org.itis.repositories.CoursesRepository;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CoursesRepositoryJdbcImpl implements CoursesRepository {
 
     private final static String SQL_SELECT_ALL = "select * from course";
+    private final static String SQL_INSERT = "insert into course(title, start_date, finish_date) values (?, ?, ?)";
     private final DataSource dataSource;
 
     public CoursesRepositoryJdbcImpl(DataSource dataSource) {
@@ -21,6 +19,30 @@ public class CoursesRepositoryJdbcImpl implements CoursesRepository {
     }
     @Override
     public void save(Course model) {
+        try (Connection connection = dataSource.getConnection()) {
+            try (PreparedStatement statement = connection.prepareStatement(SQL_INSERT, Statement.RETURN_GENERATED_KEYS)) {
+                statement.setString(1, model.getTitle());
+                statement.setDate(2, model.getStartDate());
+                statement.setDate(3, model.getFinishDate());
+
+                int affectedRows = statement.executeUpdate();
+
+                if (affectedRows != 1) {
+                    throw new SQLException("Cannot insert course");
+                }
+
+                try (ResultSet generatedIds = statement.getGeneratedKeys()){
+                    if (generatedIds.next()) {
+                        model.setId(generatedIds.getInt("id"));
+                    } else {
+                        throw new SQLException("Cannot retrieve id");
+                    }
+                }
+
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException(e);
+        }
 
     }
 
@@ -34,8 +56,8 @@ public class CoursesRepositoryJdbcImpl implements CoursesRepository {
                     Course course = Course.builder()
                             .id(resultSet.getInt("id"))
                             .title(resultSet.getString("title"))
-                            .startDate(resultSet.getString("start_date"))
-                            .finishDate(resultSet.getString("finish_date"))
+                            .startDate(resultSet.getDate("start_date"))
+                            .finishDate(resultSet.getDate("finish_date"))
 
                             .build();
                     courses.add(course);
