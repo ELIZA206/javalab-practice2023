@@ -1,6 +1,6 @@
 package org.itis.repositories;
 
-import org.itis.models.course;
+import org.itis.models.Course;
 
-public interface CoursesRepository extends CrudRepository<course>{
+public interface CoursesRepository extends CrudRepository<Course>{
 }
