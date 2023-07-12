@@ -7,6 +7,7 @@ import org.itis.models.Student;
 import org.itis.repositories.CoursesRepository;
 import org.itis.repositories.StudentsRepository;
 import org.itis.repositories.impl.CoursesRepositoryJdbcImpl;
+import org.itis.repositories.impl.CoursesRepositorySpringJdbcImpl;
 import org.itis.repositories.impl.StudentsRepositoryJdbcImpl;
 
 import java.sql.Date;
@@ -32,11 +33,11 @@ public class Main {
         //System.out.println(student);
         //System.out.println(studentsRepository.findAll());
         Course course = Course.builder()
-                .title("Math")
+                .title("Rain")
                 .startDate(Date.valueOf("2025-02-02"))
-                .finishDate(Date.valueOf("2070-02-02"))
+                .finishDate(Date.valueOf("2040-02-02"))
                 .build();
-        CoursesRepository coursesRepository = new CoursesRepositoryJdbcImpl(dataSource);
+        CoursesRepository coursesRepository = new CoursesRepositorySpringJdbcImpl(dataSource);
         coursesRepository.save(course);
         System.out.println(coursesRepository.findAll());
     }
